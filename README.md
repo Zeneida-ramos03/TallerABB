@@ -1,1 +1,344 @@
-# TallerABB
+// Zeneida Ramos -22300082
+// Rosero Torres Brayan Stiven - 22400233
+#include <iostream>
+#include <malloc.h> 
+#include <string.h> 
+#include <vector>
+#include <algorithm> 
+
+using namespace std;
+
+
+struct nodo
+{
+
+    char nombre[30]; 
+    int anio;         
+    int genero;       
+    double dinero;    
+    struct nodo *izq; 
+    struct nodo *der; 
+};
+
+
+struct nodo *raiz = NULL, *aux = NULL, *aux2 = NULL;
+
+int posicionar()
+{
+    if (aux->anio <= aux2->anio)
+    {
+        if (aux2->izq != NULL) 
+        {
+            aux2 = aux2->izq;
+            posicionar();     
+        }
+        else
+            aux2->izq = aux; 
+    }
+    else if (aux->anio > aux2->anio)
+    {
+        if (aux2->der != NULL)
+        {
+            aux2 = aux2->der; 
+            posicionar();
+        }
+        else
+            aux2->der = aux;
+    }
+    return 0;
+}
+
+int addNodo()
+{
+    
+    aux = (struct nodo *)malloc(sizeof(struct nodo));
+    
+    cout << "Nombre de la pelicula: ";
+    cin >> aux->nombre;
+
+    cout << "Anio de realizacion: ";
+    cin >> aux->anio;
+
+    cout << "Genero: \n 1. Accion \n 2. Drama  \n 3.Comedia" << endl;
+    cin >> aux->genero;
+
+    cout << "Dinero recaudado en millones de dolares: ";
+    cin >> aux->dinero;
+
+    aux->izq = aux->der = NULL;
+    if (raiz == NULL)
+    {
+        raiz = aux;
+        aux = NULL;
+        free(aux);
+    }
+    else
+    {
+        aux2 = raiz;
+        posicionar();
+    }
+}
+
+
+const char *obtenerGeneroTexto(int genero)
+{
+    switch (genero)
+    {
+    case 1:
+        return "Accion";
+    case 2:
+        return "Drama";
+    case 3:
+        return "Comedia";
+    default:
+        return "Desconocido"; 
+    }
+}
+
+int mostrarP(struct nodo *aux3)
+{
+    cout << "--------------------- " << endl;
+    cout << "Nombre: " << aux3->nombre << endl;
+    cout << "Anio: " << aux3->anio << endl;
+    cout << "Genero: " << obtenerGeneroTexto(aux3->genero) << endl;
+    cout << "Dinero Recaudado: " << aux3->dinero << " millones de dolares " << endl;
+}
+
+
+int inorden(struct nodo *aux3)
+{
+    if (aux3->izq != NULL)
+        inorden(aux3->izq);
+    cout << "\n======== INORDEN ========\n";
+    mostrarP(aux3);
+    if (aux3->der != NULL)
+        inorden(aux3->der);
+    return 0;
+}
+int preorden(struct nodo *aux3)
+{
+    cout << "\n======== PREORDEN ========\n";
+    mostrarP(aux3);
+
+    if (aux3->izq != NULL)
+        
+        preorden(aux3->izq);
+    if (aux3->der != NULL)
+        preorden(aux3->der);
+    return 0;
+}
+int postorden(struct nodo *aux3)
+{
+    if (aux3->izq != NULL)
+        postorden(aux3->izq);
+    if (aux3->der != NULL)
+        postorden(aux3->der);
+    cout << "\n======== POSTORDEN ========\n";
+    mostrarP(aux3);
+    return 0;
+}
+int ubicar(nodo *aux3, const char *aguja)
+{
+    if (aux3 == NULL) 
+    {
+        return 0;
+    }
+
+    
+    if (strcmp(aux3->nombre, aguja) == 0) 
+    {
+        aux = aux3;
+        return 1;
+    }
+
+    
+    if (aux3->izq != NULL && ubicar(aux3->izq, aguja))
+    {
+        return 1;
+    }
+ 
+    if (aux3->der != NULL && ubicar(aux3->der, aguja))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+int buscarPelicula()
+
+{
+    char buscar[50];
+    cout << "buscar una pelicula por su nombre : " << endl;
+    cin >> buscar;
+
+    
+    if (ubicar(raiz, buscar))
+    {
+        mostrarP(aux); 
+    }
+    else
+    {
+        cout << "no hay pelicula con ese nombre: " << buscar << endl;
+    }
+    return 0;
+}
+int ubicarG(nodo *aux3, int gener)
+{
+    if (aux3 == NULL) 
+    {
+        return 0;
+    }
+
+    
+    if (aux3->genero == gener)
+    {
+        mostrarP(aux3);
+    }
+    
+    ubicarG(aux3->izq, gener);
+    ubicarG(aux3->der, gener);
+}
+int mostrarxG(struct nodo *raiz)
+{
+    int buscar;
+    cout << "buscar pelicula por Genero: \n1. Accion \n 2. Drama \n 3.Comedia " << endl;
+    cin >> buscar;
+
+    if (buscar < 1 || buscar > 3)
+    {
+        cout << "ERROR: GENERO NO VALIDO" << endl;
+    }
+
+    
+    if (buscar == 1)
+    {
+        cout << "\n======== Accion ========\n";
+    }
+    else if (buscar == 2)
+    {
+        cout << "\n======== Drama ========\n";
+    }
+    else if (buscar == 3)
+    {
+        cout << "\n======== Comedia ========\n";
+    }
+
+    
+    ubicarG(raiz, buscar);
+}
+
+void recolectarPeliculas(nodo *raiz, vector<nodo *> &peliculas)
+{
+    if (!raiz)
+        return;
+
+    recolectarPeliculas(raiz->izq, peliculas); 
+    peliculas.push_back(raiz);                 
+    recolectarPeliculas(raiz->der, peliculas); 
+}
+
+
+bool compararPorDineroMenor(nodo *a, nodo *b)
+{
+    return a->dinero < b->dinero;
+}
+
+void mostrarFracasosTaquilleros(nodo *raiz)
+{
+    vector<nodo *> peliculas;
+    recolectarPeliculas(raiz, peliculas);
+
+    
+    sort(peliculas.begin(), peliculas.end(), compararPorDineroMenor);
+
+    cout << "\n=== Los 3 fracasos taquilleros ===\n";
+    int total = min(3, static_cast<int>(peliculas.size()));
+
+    if (total == 0)
+    {
+        cout << "No hay películas registradas.\n";
+    }
+    else
+    {
+        for (int i = 0; i < total; ++i)
+        {
+            cout << i + 1 << ". " << peliculas[i]->nombre
+                 << " ($" << peliculas[i]->dinero << " millones)\n";
+        }
+    }
+}
+int Salir()
+{
+    cout << "Adios!" << endl;
+}
+
+
+int main()
+{
+    int opc, opc2;
+
+    do
+    {
+        
+        cout << "\n======== MENU Pelicula========\n";
+        cout << "1. Registrar pelicula\n";
+        cout << "2. Recorrido Arbol\n";
+        cout << "3. Buscar pelicula\n";
+        cout << "4. Mostrar x Genero\n";
+        cout << "5. Fracasos \n";
+        cout << "6. Salir\n";
+        cout << "Seleccione una opcion: ";
+        cin >> opc;
+
+        switch (opc)
+        {
+        case 1:
+            addNodo();
+            break;
+        case 2:
+            cout << "\n======== MENU Recorrido Arbol========\n";
+            cout << "1. INORDEN\n";
+            cout << "2. PREORDEN\n";
+            cout << "3. POSTORDEN\n";
+            cout << "Seleccione una opcion: ";
+            cin >> opc2;
+            switch (opc2)
+            {
+            case 1:
+                inorden(raiz);
+                break;
+            case 2:
+                preorden(raiz);
+                break;
+            case 3:
+                postorden(raiz);
+                break;
+            default:
+                cout << "Opcion no valida. Por favor, seleccione una opcion anioida.\n";
+                break;
+            }
+            break;
+
+        case 3:
+            buscarPelicula();
+            break;
+        case 4:
+            mostrarxG(raiz);
+            break;
+        case 5:
+        mostrarFracasosTaquilleros(raiz);
+            break;
+        case 6:
+            Salir();
+            break;
+        default:
+            cout << "Opcion no valida. Por favor, seleccione una opcion anioida.\n";
+            break;
+        }
+
+    } while (opc != 6);
+
+    
+
+    return 0;
+}
